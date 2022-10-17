@@ -151,11 +151,12 @@ void Object3d::InitializeDescriptorHeap()
 void Object3d::InitializeCamera(int window_width, int window_height)
 {
 	// ビュー行列の生成
-	matView = XMMatrixLookAtLH(
+	/*matView = XMMatrixLookAtLH(
 		XMLoadFloat3(&eye),
 		XMLoadFloat3(&target),
-		XMLoadFloat3(&up));
+		XMLoadFloat3(&up));*/
 
+	UpdateViewMatrix();
 	// 平行投影による射影行列の生成
 	//constMap->mat = XMMatrixOrthographicOffCenterLH(
 	//	0, window_width,
@@ -582,7 +583,45 @@ void Object3d::CreateModel()
 void Object3d::UpdateViewMatrix()
 {
 	// ビュー行列の更新
-	matView = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
+	//matView = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
+	XMVECTOR eyePosition = XMLoadFloat3(&eye);
+	XMVECTOR targetPosition = XMLoadFloat3(&target);
+	XMVECTOR upVector = XMLoadFloat3(&up);
+
+	XMVECTOR cameraAxisZ = XMVectorSubtract(targetPosition, eyePosition);
+
+	assert(!XMVector3Equal(cameraAxisZ, XMVectorZero()));
+	assert(!XMVector3IsInfinite(cameraAxisZ));
+	assert(!XMVector3Equal(upVector, XMVectorZero()));
+	assert(!XMVector3IsInfinite(upVector));
+
+	cameraAxisZ = XMVector3Normalize(cameraAxisZ);
+
+	XMVECTOR cameraAxisX;
+	cameraAxisX = XMVector3Cross(upVector, cameraAxisZ);
+	cameraAxisX = XMVector3Normalize(cameraAxisX);
+
+	XMVECTOR cameraAxisY;
+	cameraAxisY = XMVector3Cross(cameraAxisZ, cameraAxisX);
+
+	XMMATRIX matCameraRot;
+
+	matCameraRot.r[0] = cameraAxisX;
+	matCameraRot.r[1] = cameraAxisY;
+	matCameraRot.r[2] = cameraAxisZ;
+	matCameraRot.r[3] = XMVectorSet(0, 0, 0, 1);
+
+	matView = XMMatrixTranspose(matCameraRot);
+
+	XMVECTOR reverseEyePosition = XMVectorNegate(eyePosition);
+
+	XMVECTOR tX = XMVector3Dot(cameraAxisX, reverseEyePosition);
+	XMVECTOR tY = XMVector3Dot(cameraAxisY, reverseEyePosition);
+	XMVECTOR tZ = XMVector3Dot(cameraAxisZ, reverseEyePosition);
+
+	XMVECTOR translation = XMVectorSet(tX.m128_f32[0], tY.m128_f32[1], tZ.m128_f32[2], 1.0f);
+	
+	matView.r[3] = translation;
 }
 
 bool Object3d::Initialize()
