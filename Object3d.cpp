@@ -131,6 +131,17 @@ void Object3d::CameraMoveVector(XMFLOAT3 move)
 	SetTarget(target_moved);
 }
 
+void Object3d::CameraMoveEyeVector(XMFLOAT3 move)
+{
+	XMFLOAT3 eye_moved = GetEye();
+
+	eye_moved.x += move.x;
+	eye_moved.y += move.y;
+	eye_moved.z += move.z;
+
+	SetEye(eye_moved);
+}
+
 void Object3d::InitializeDescriptorHeap()
 {
 	HRESULT result = S_FALSE;
@@ -686,7 +697,7 @@ void Object3d::Update()
 	matWorld = XMMatrixIdentity(); // 変形をリセット
 	matWorld *= matScale; // ワールド行列にスケーリングを反映
 	matWorld *= matRot; // ワールド行列に回転を反映
-	matWorld *= matBillboardY;//ビルボード行列を掛ける
+	matWorld *= matBillboard;//ビルボード行列を掛ける
 	matWorld *= matTrans; // ワールド行列に平行移動を反映
 
 	// 親オブジェクトがあれば
