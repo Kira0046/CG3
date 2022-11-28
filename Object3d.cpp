@@ -686,7 +686,7 @@ void Object3d::Update()
 	matWorld = XMMatrixIdentity(); // 変形をリセット
 	matWorld *= matScale; // ワールド行列にスケーリングを反映
 	matWorld *= matRot; // ワールド行列に回転を反映
-	//matWorld *= matBillboardY;//ビルボード行列を掛ける
+	matWorld *= matBillboardY;//ビルボード行列を掛ける
 	matWorld *= matTrans; // ワールド行列に平行移動を反映
 
 	// 親オブジェクトがあれば
