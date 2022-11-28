@@ -1,4 +1,5 @@
-#include "BasicShaderHeader.hlsli"
+//#include "BasicShaderHeader.hlsli"
+#include "Particle.hlsli"
 
 //struct GSOutput
 //{
@@ -23,18 +24,17 @@ static const float2 uv_array[vnum] = {
 };
 
 [maxvertexcount(vnum)]
-void main(
-	point VSOutput input[1] : SV_POSITION,
-	inout TriangleStream< GSOutput > output
-)
+void main(point VSOutput input[1] : SV_POSITION,inout TriangleStream< GSOutput > output)
 {
 	GSOutput element;
-
 	for (uint i = 0; i < vnum; i++) {
-		element.svpos = input[0].pos + offset_array[i];
+		//float4 offset = mul(matBillboard, offset_array[i]);
+		float4 offset = offset_array[i] * input[0].scale;
+		offset = mul(matBillboard, offset);
 
-		element.svpos = mul(mat, element.svpos);
+		element.svpos = input[0].pos + offset;
 		//element.uv = float2(0.5f, 0.5f);
+		element.svpos = mul(mat, element.svpos);
 		element.uv = uv_array[i];
 		output.Append(element);
 	}
